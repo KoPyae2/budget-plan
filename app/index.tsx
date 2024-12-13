@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useTransactions } from "@/context/TransactionContext";
 import { useCategories } from "@/context/CategoryContext";
 import { Link } from "expo-router";
 import { AddTransactionModal } from "@/components/AddTransactionModal";
+import SetInitialAmountModal from "@/components/SetInitialAmountModal";
 
 export default function Dashboard() {
   const [modalVisible, setModalVisible] = useState(false);
-  const { transactions } = useTransactions();
+  const [initModalVisible, setInitModalVisible] = useState(false);
+  const { transactions, isInitialized,setInitialBalance,balance } = useTransactions();
+
+  console.log(isInitialized);
+
   const { categories } = useCategories();
 
   const getCategoryById = (categoryId: string) => {
@@ -23,12 +28,31 @@ export default function Dashboard() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const balance = totalIncome - totalExpenses;
+  // const balance = totalIncome - totalExpenses;
 
   // Get recent transactions (last 5)
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
+
+  const handleSetInitialAmount = (amount: number) => {
+    console.log("Initial amount set to:", amount);
+    setInitialBalance(amount);
+    setInitModalVisible(false);
+    // Handle the logic for setting the initial amount (e.g., updating context)
+  };
+
+  if (!isInitialized && !initModalVisible) {
+    setInitModalVisible(true);
+  }
+
+  useEffect(()=>{
+    if(isInitialized){
+      setInitModalVisible(false);
+    }else{
+      setInitModalVisible(true);
+    }
+  },[isInitialized])
 
   return (
     <View style={styles.container}>
@@ -36,7 +60,7 @@ export default function Dashboard() {
         {/* Total Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.savingsLabel}>Current Balance</Text>
-          <Text style={styles.savingsAmount}>${balance.toFixed(2)}</Text>
+          <Text style={styles.savingsAmount}>${balance.total.toFixed(2)}</Text>
 
           {/* Progress Bars */}
           <View style={styles.progressBarContainer}>
@@ -154,6 +178,12 @@ export default function Dashboard() {
       </TouchableOpacity>
 
       <AddTransactionModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+
+      <SetInitialAmountModal
+        visible={initModalVisible}
+        close={() => setInitModalVisible(false)}
+        setInitAmount={handleSetInitialAmount}
+      />
     </View>
   );
 }

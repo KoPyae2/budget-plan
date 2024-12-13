@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import { TransactionProvider } from "@/context/TransactionContext";
+import { TransactionProvider, useTransactions } from "@/context/TransactionContext";
 import { CategoryProvider } from "@/context/CategoryContext";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
